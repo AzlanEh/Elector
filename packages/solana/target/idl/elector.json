@@ -1,0 +1,362 @@
+{
+  "address": "BCjKShjHXdo859DhoWVjbyZgSmC3ecjFzQ8W3BkUeqTr",
+  "metadata": {
+    "name": "elector",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "end_election",
+      "discriminator": [
+        26,
+        248,
+        92,
+        184,
+        33,
+        221,
+        94,
+        215
+      ],
+      "accounts": [
+        {
+          "name": "election",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "election"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_election",
+      "discriminator": [
+        59,
+        166,
+        191,
+        126,
+        195,
+        0,
+        153,
+        168
+      ],
+      "accounts": [
+        {
+          "name": "election",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  108,
+                  101,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "election_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "election_id",
+          "type": "string"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "start_time",
+          "type": "i64"
+        },
+        {
+          "name": "end_time",
+          "type": "i64"
+        },
+        {
+          "name": "candidate_count",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "start_election",
+      "discriminator": [
+        84,
+        120,
+        181,
+        159,
+        113,
+        70,
+        98,
+        143
+      ],
+      "accounts": [
+        {
+          "name": "election",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "election"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "submit_vote_commitment",
+      "discriminator": [
+        149,
+        248,
+        142,
+        52,
+        170,
+        150,
+        52,
+        110
+      ],
+      "accounts": [
+        {
+          "name": "election",
+          "writable": true
+        },
+        {
+          "name": "vote_commitment",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  95,
+                  99,
+                  111,
+                  109,
+                  109,
+                  105,
+                  116,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "election"
+              },
+              {
+                "kind": "arg",
+                "path": "voter_hash"
+              }
+            ]
+          }
+        },
+        {
+          "name": "voter",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "voter_hash",
+          "type": "string"
+        },
+        {
+          "name": "commitment",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Election",
+      "discriminator": [
+        68,
+        191,
+        164,
+        85,
+        35,
+        105,
+        152,
+        202
+      ]
+    },
+    {
+      "name": "VoteCommitment",
+      "discriminator": [
+        9,
+        154,
+        172,
+        4,
+        64,
+        22,
+        11,
+        94
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidTimeRange",
+      "msg": "Invalid time range for election"
+    },
+    {
+      "code": 6001,
+      "name": "ElectionAlreadyStarted",
+      "msg": "Election has already started"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidCandidateCount",
+      "msg": "Invalid number of candidates"
+    },
+    {
+      "code": 6003,
+      "name": "Unauthorized",
+      "msg": "Unauthorized access"
+    },
+    {
+      "code": 6004,
+      "name": "ElectionAlreadyActive",
+      "msg": "Election is already active"
+    },
+    {
+      "code": 6005,
+      "name": "ElectionNotReady",
+      "msg": "Election is not ready to start"
+    },
+    {
+      "code": 6006,
+      "name": "ElectionNotActive",
+      "msg": "Election is not active"
+    },
+    {
+      "code": 6007,
+      "name": "ElectionEnded",
+      "msg": "Election has already ended"
+    },
+    {
+      "code": 6008,
+      "name": "AlreadyVoted",
+      "msg": "Voter has already voted"
+    },
+    {
+      "code": 6009,
+      "name": "ElectionNotEnded",
+      "msg": "Election has not ended yet"
+    }
+  ],
+  "types": [
+    {
+      "name": "Election",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "election_id",
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "type": "i64"
+          },
+          {
+            "name": "end_time",
+            "type": "i64"
+          },
+          {
+            "name": "candidate_count",
+            "type": "u8"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "total_votes",
+            "type": "u32"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteCommitment",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "voter_hash",
+            "type": "string"
+          },
+          {
+            "name": "commitment",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

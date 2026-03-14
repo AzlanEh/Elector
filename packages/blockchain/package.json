@@ -1,0 +1,32 @@
+{
+  "name": "@elector/blockchain",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js"
+    },
+    "./solana": {
+      "default": "./dist/solana.js"
+    },
+    "./crypto": {
+      "default": "./dist/crypto.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.32.1",
+    "@elector/env": "workspace:*",
+    "@solana/web3.js": "^1.95.3",
+    "bs58": "^6.0.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@elector/config": "workspace:*",
+    "@types/bn.js": "^5.1.5",
+    "typescript": "catalog:",
+    "vitest": "^2.1.8"
+  }
+}

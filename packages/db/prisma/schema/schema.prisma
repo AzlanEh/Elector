@@ -8,3 +8,62 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id            String   @id @default(cuid())
+  voterHash     String   @unique // SHA256(aadhaar + salt)
+  hasVoted      Boolean  @default(false)
+  solanaWallet  String?  // temporary Solana wallet public key
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Election {
+  id              String     @id @default(cuid())
+  title           String
+  description     String?
+  startTime       DateTime
+  endTime         DateTime
+  isActive        Boolean    @default(false)
+  solanaProgramId String?    // Solana program ID for this election
+  electionPubKey  String?    // election public key for encryption
+  candidates      Candidate[]
+  voteCommitments VoteCommitment[]
+  createdAt       DateTime   @default(now())
+}
+
+model Candidate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  electionId  String
+  election    Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model VoterToken {
+  id         String   @id @default(cuid())
+  voterHash  String   @unique
+  electionId String
+  signature  String   // signed by backend private key
+  issuedAt   DateTime @default(now())
+  expiresAt  DateTime
+}
+
+model VoteCommitment {
+  id          String   @id @default(cuid())
+  voterHash   String   @unique
+  commitment  String   // cryptographic commitment hash
+  electionId  String
+  election    Election @relation(fields: [electionId], references: [id])
+  transactionId String? // Solana transaction ID
+  timestamp   DateTime @default(now())
+}
+
+model EncryptedVote {
+  id         String   @id @default(cuid())
+  voterHash  String
+  encryptedVote String // encrypted candidate selection
+  salt       String   // random salt for commitment
+  createdAt  DateTime @default(now())
+}
