@@ -1,13 +1,14 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { Elector } from "../target/types/elector";
+import type { Elector } from "../target/types/elector";
+import { expect } from "chai";
 
 describe("elector", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.Elector as Program<Elector>;
+  const program = anchor.workspace['Elector'] as Program<Elector>;
 
   it("Initialize election", async () => {
     const electionId = "test-election-001";
@@ -30,7 +31,7 @@ describe("elector", () => {
         election: electionAccount,
         authority: program.provider.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
-      })
+      } as any)
       .rpc();
 
     console.log("Election initialized successfully!");

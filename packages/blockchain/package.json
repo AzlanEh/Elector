@@ -3,12 +3,15 @@
   "type": "module",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./solana": {
+      "types": "./dist/solana.d.ts",
       "default": "./dist/solana.js"
     },
     "./crypto": {
+      "types": "./dist/crypto.d.ts",
       "default": "./dist/crypto.js"
     }
   },

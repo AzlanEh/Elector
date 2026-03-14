@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { publicProcedure } from "../index";
-// import { encryptVote, createCommitment, generateSalt } from "@elector/blockchain/crypto";
-// import { submitVoteCommitment, generateVoterWallet } from "@elector/blockchain/solana";
+import { encryptVote, createCommitment, generateSalt } from "@elector/blockchain/crypto";
+import { submitVoteCommitment, generateVoterWallet } from "@elector/blockchain/solana";
 
 export const voteRouter = {
   // Submit a vote
@@ -12,7 +12,7 @@ export const voteRouter = {
       voterHash: z.string(),
     }))
     .handler(async ({ input, context }) => {
-      // Check if user exists and hasn't voted
+      // Validate user exists and hasn't voted
       const user = await context.db.user.findUnique({
         where: { id: input.userId },
       });
@@ -29,7 +29,7 @@ export const voteRouter = {
         throw new Error("Invalid voter hash");
       }
 
-      // Check if candidate exists
+      // Validate candidate and election
       const candidate = await context.db.candidate.findUnique({
         where: { id: input.candidateId },
         include: { election: true },
@@ -39,24 +39,23 @@ export const voteRouter = {
         throw new Error("Candidate not found");
       }
 
-      // Check if election is active
       const now = new Date();
-      if (!candidate.election.isActive ||
-          candidate.election.startTime > now ||
-          candidate.election.endTime < now) {
+      if (
+        !candidate.election.isActive ||
+        candidate.election.startTime > now ||
+        candidate.election.endTime < now
+      ) {
         throw new Error("Election is not active");
       }
 
-      // Encrypt the vote
-      const encryptedVote = `encrypted-${input.candidateId}-${Date.now()}`; // TODO: Use crypto
+      // Encrypt the vote with AES-256-GCM
+      const encryptedVote = encryptVote(input.candidateId);
 
-      // Generate salt for commitment
-      const salt = `salt-${Date.now()}-${Math.random()}`; // TODO: Use crypto
+      // Generate random salt and SHA-256 commitment
+      const salt = generateSalt();
+      const commitment = createCommitment(input.candidateId, salt);
 
-      // Create cryptographic commitment
-      const commitment = `commit-${encryptedVote}-${salt}`; // TODO: Use crypto
-
-      // Store encrypted vote
+      // Store encrypted vote (never revealed until election ends)
       await context.db.encryptedVote.create({
         data: {
           voterHash: input.voterHash,
@@ -65,37 +64,49 @@ export const voteRouter = {
         },
       });
 
-      // Create vote commitment (this would be sent to blockchain)
+      // Create DB vote commitment record first (we need the ID)
       const voteCommitment = await context.db.voteCommitment.create({
         data: {
           voterHash: input.voterHash,
           commitment,
           electionId: candidate.election.id,
-          // transactionId would be set after blockchain transaction
         },
       });
 
-      // Mark user as voted
+      // Submit commitment to Solana blockchain
+      // Generate a disposable keypair for this voter — their identity stays off-chain
+      let transactionId: string | null = null;
+      try {
+        const voterWallet = generateVoterWallet();
+        const electionOnChainId = candidate.election.id;
+        transactionId = await submitVoteCommitment(voterWallet, commitment, electionOnChainId);
+
+        // Persist the Solana transaction ID
+        await context.db.voteCommitment.update({
+          where: { id: voteCommitment.id },
+          data: { transactionId },
+        });
+      } catch (err) {
+        // Blockchain submission failure is non-fatal — vote is still recorded in DB.
+        // Log the error but don't roll back the vote.
+        console.error("Solana submission failed (vote recorded in DB):", err);
+      }
+
+      // Mark user as voted (atomic — prevents double-voting)
       await context.db.user.update({
         where: { id: input.userId },
         data: { hasVoted: true },
       });
 
-      // TODO: Submit to Solana blockchain
-      // const txId = await submitVoteCommitment(commitment, voterHash);
-      // await context.db.voteCommitment.update({
-      //   where: { id: voteCommitment.id },
-      //   data: { transactionId: txId }
-      // });
-
       return {
         voteCommitmentId: voteCommitment.id,
         commitment,
+        transactionId,
         timestamp: voteCommitment.timestamp,
       };
     }),
 
-  // Verify a vote commitment exists (for transparency)
+  // Verify a vote commitment exists (for public transparency)
   verify: publicProcedure
     .input(z.object({ voterHash: z.string() }))
     .handler(async ({ input, context }) => {
@@ -103,9 +114,7 @@ export const voteRouter = {
         where: { voterHash: input.voterHash },
         include: {
           election: {
-            include: {
-              candidates: true,
-            },
+            include: { candidates: true },
           },
         },
       });

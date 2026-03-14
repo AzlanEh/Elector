@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { publicProcedure } from "../index";
 import crypto from "crypto";
-import { env } from "../../../env/src/server";
+import { env } from "@elector/env/server";
 
 const DIGILOCKER_AUTH_URL = "https://digilocker.meripehchaan.gov.in/public/oauth2/1/authorize";
 const DIGILOCKER_TOKEN_URL = "https://digilocker.meripehchaan.gov.in/public/oauth2/1/token";

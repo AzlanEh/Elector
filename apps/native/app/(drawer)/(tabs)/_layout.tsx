@@ -5,39 +5,48 @@ import { useThemeColor } from "heroui-native";
 export default function TabLayout() {
   const themeColorForeground = useThemeColor("foreground");
   const themeColorBackground = useThemeColor("background");
+  const accentColor = useThemeColor("accent");
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        headerStyle: {
-          backgroundColor: themeColorBackground,
-        },
-        headerTintColor: themeColorForeground,
-        headerTitleStyle: {
-          color: themeColorForeground,
-          fontWeight: "600",
-        },
         tabBarStyle: {
           backgroundColor: themeColorBackground,
+          borderTopWidth: 0,
+          elevation: 0,
+        },
+        tabBarActiveTintColor: accentColor,
+        tabBarInactiveTintColor: themeColorForeground,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "500",
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="home" size={size} color={color} />
+          title: "Vote",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "checkmark-circle" : "checkmark-circle-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="two"
         options={{
-          title: "Explore",
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="compass" size={size} color={color} />
+          title: "Results",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "bar-chart" : "bar-chart-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

@@ -1,4 +1,4 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import { useThemeColor } from "heroui-native";
@@ -24,18 +24,21 @@ function DrawerLayout() {
         },
         headerRight: renderThemeToggle,
         drawerStyle: { backgroundColor: themeColorBackground },
+        drawerLabelStyle: { marginLeft: -16 },
       }}
     >
       <Drawer.Screen
         name="index"
         options={{
-          headerTitle: "Home",
+          headerTitle: "Elector",
           drawerLabel: ({ color, focused }) => (
-            <Text style={{ color: focused ? color : themeColorForeground }}>Home</Text>
+            <Text style={{ color: focused ? color : themeColorForeground, fontWeight: focused ? "600" : "400" }}>
+              Home
+            </Text>
           ),
           drawerIcon: ({ size, color, focused }) => (
             <Ionicons
-              name="home-outline"
+              name={focused ? "home" : "home-outline"}
               size={size}
               color={focused ? color : themeColorForeground}
             />
@@ -45,21 +48,23 @@ function DrawerLayout() {
       <Drawer.Screen
         name="(tabs)"
         options={{
-          headerTitle: "Tabs",
+          headerTitle: "Vote",
           drawerLabel: ({ color, focused }) => (
-            <Text style={{ color: focused ? color : themeColorForeground }}>Tabs</Text>
+            <Text style={{ color: focused ? color : themeColorForeground, fontWeight: focused ? "600" : "400" }}>
+              Vote
+            </Text>
           ),
           drawerIcon: ({ size, color, focused }) => (
-            <MaterialIcons
-              name="border-bottom"
+            <Ionicons
+              name={focused ? "checkmark-circle" : "checkmark-circle-outline"}
               size={size}
               color={focused ? color : themeColorForeground}
             />
           ),
           headerRight: () => (
-            <Link href="/modal" asChild>
+            <Link href={"./modal" as any} asChild>
               <Pressable className="mr-4">
-                <Ionicons name="add-outline" size={24} color={themeColorForeground} />
+                <Ionicons name="information-circle-outline" size={24} color={themeColorForeground} />
               </Pressable>
             </Link>
           ),
