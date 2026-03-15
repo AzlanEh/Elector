@@ -46,6 +46,25 @@ function DrawerLayout() {
       />
 
       <Drawer.Screen
+        name="elections"
+        options={{
+          headerShown: false,
+          drawerLabel: ({ color, focused }) => (
+            <Text style={{ color: focused ? color : themeColorForeground, fontWeight: focused ? "600" : "400" }}>
+              Elections
+            </Text>
+          ),
+          drawerIcon: ({ size, color, focused }) => (
+            <Ionicons
+              name={focused ? "albums" : "albums-outline"}
+              size={size}
+              color={focused ? color : themeColorForeground}
+            />
+          ),
+        }}
+      />
+
+      <Drawer.Screen
         name="profile"
         options={{
           headerTitle: "Profile",

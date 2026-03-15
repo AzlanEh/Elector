@@ -10,8 +10,45 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  aadhaarHash  String   @unique // hashed Aadhaar UID — never stored in plain text
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(cuid())
+  aadhaarHash String   @unique // hashed Aadhaar UID — never stored in plain text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  votes       Vote[]
+}
+
+model Election {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  candidates  Candidate[]
+  votes       Vote[]
+}
+
+model Candidate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  party       String?
+  electionId  String
+  election    Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  votes       Vote[]
+  createdAt   DateTime @default(now())
+}
+
+model Vote {
+  id          String    @id @default(cuid())
+  userId      String
+  electionId  String
+  candidateId String
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  election    Election  @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, electionId]) // one vote per user per election
 }
