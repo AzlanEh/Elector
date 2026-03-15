@@ -179,8 +179,8 @@
                 "path": "election"
               },
               {
-                "kind": "arg",
-                "path": "voter_hash"
+                "kind": "account",
+                "path": "voter"
               }
             ]
           }

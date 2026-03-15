@@ -21,10 +21,6 @@ pub mod elector {
         // Validate election parameters
         require!(start_time < end_time, ElectionError::InvalidTimeRange);
         require!(
-            start_time > clock.unix_timestamp,
-            ElectionError::ElectionAlreadyStarted
-        );
-        require!(
             candidate_count > 0 && candidate_count <= 10,
             ElectionError::InvalidCandidateCount
         );
@@ -158,7 +154,7 @@ pub struct SubmitVoteCommitment<'info> {
         init,
         payer = voter,
         space = 8 + VoteCommitment::LEN,
-        seeds = [b"vote_commitment", election.key().as_ref(), voter_hash.as_bytes()],
+        seeds = [b"vote_commitment", election.key().as_ref(), voter.key().as_ref()],
         bump
     )]
     pub vote_commitment: Account<'info, VoteCommitment>,

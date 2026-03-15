@@ -8,7 +8,21 @@
     },
     "name": "elector",
     "slug": "elector",
-    "plugins": ["expo-font"],
+    "plugins": [
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Elector needs camera access to scan your Aadhaar QR code."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Elector needs photo library access to read your Aadhaar QR from an image."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

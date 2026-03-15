@@ -44,18 +44,19 @@ function DrawerLayout() {
           ),
         }}
       />
+
       <Drawer.Screen
-        name="(tabs)"
+        name="profile"
         options={{
-          headerShown: false,
+          headerTitle: "Profile",
           drawerLabel: ({ color, focused }) => (
             <Text style={{ color: focused ? color : themeColorForeground, fontWeight: focused ? "600" : "400" }}>
-              Vote
+              Profile
             </Text>
           ),
           drawerIcon: ({ size, color, focused }) => (
             <Ionicons
-              name={focused ? "checkmark-circle" : "checkmark-circle-outline"}
+              name={focused ? "person" : "person-outline"}
               size={size}
               color={focused ? color : themeColorForeground}
             />

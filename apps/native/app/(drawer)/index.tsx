@@ -1,9 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
 import {
-  Button,
-  Card,
   Chip,
   Separator,
   Spinner,
@@ -36,7 +33,7 @@ export default function Home() {
         </View>
         <Text className="text-3xl font-bold text-foreground tracking-tight">Elector</Text>
         <Text className="text-muted text-sm leading-relaxed">
-          Secure, anonymous blockchain voting powered by Solana and Aadhaar.
+          Verify your identity with Aadhaar QR scanning.
         </Text>
       </Animated.View>
 
@@ -93,77 +90,7 @@ export default function Home() {
               )}
             </View>
           </Surface>
-
-          {/* Blockchain Row */}
-          <Surface variant="tertiary" className="p-3 rounded-xl">
-            <View className="flex-row items-center gap-3">
-              <View
-                className="w-9 h-9 rounded-xl items-center justify-center bg-accent/20"
-                style={{ borderCurve: "continuous" }}
-              >
-                <Ionicons name="cube-outline" size={18} color={accentForegroundColor} />
-              </View>
-              <View className="flex-1">
-                <Text className="text-foreground text-sm font-medium">Solana Blockchain</Text>
-                <Text className="text-muted text-xs mt-0.5">Devnet · Vote commitments</Text>
-              </View>
-              <Chip variant="tertiary" color="default" size="sm">
-                <Chip.Label>Devnet</Chip.Label>
-              </Chip>
-            </View>
-          </Surface>
         </Surface>
-      </Animated.View>
-
-      {/* Feature Highlights */}
-      <Animated.View entering={FadeInDown.delay(150).springify()} className="mb-5">
-        <Text className="text-foreground font-semibold text-sm mb-3">How It Works</Text>
-        <View className="gap-3">
-          {[
-            {
-              icon: "finger-print" as const,
-              title: "Anonymous Auth",
-              desc: "Login via DigiLocker. Your Aadhaar is hashed, never stored.",
-            },
-            {
-              icon: "lock-closed-outline" as const,
-              title: "Encrypted Vote",
-              desc: "Your choice is AES-256-GCM encrypted before submission.",
-            },
-            {
-              icon: "link-outline" as const,
-              title: "On-Chain Commitment",
-              desc: "A cryptographic commitment is recorded on Solana immutably.",
-            },
-          ].map((item, i) => (
-            <Card key={i} variant="secondary" className="rounded-2xl">
-              <Card.Body>
-                <View className="flex-row items-start gap-3">
-                  <View
-                    className="w-9 h-9 rounded-xl bg-accent/20 items-center justify-center mt-0.5"
-                    style={{ borderCurve: "continuous" }}
-                  >
-                    <Ionicons name={item.icon} size={18} color={accentForegroundColor} />
-                  </View>
-                  <View className="flex-1">
-                    <Card.Title className="text-sm">{item.title}</Card.Title>
-                    <Card.Description className="text-xs mt-1 leading-relaxed">
-                      {item.desc}
-                    </Card.Description>
-                  </View>
-                </View>
-              </Card.Body>
-            </Card>
-          ))}
-        </View>
-      </Animated.View>
-
-      {/* CTA */}
-      <Animated.View entering={FadeInDown.delay(200).springify()} className="mb-8">
-        <Button variant="primary" className="w-full" onPress={() => router.push("/(drawer)/(tabs)/(tab-nav)")}>
-          <Ionicons name="checkmark-done-outline" size={18} color={accentForegroundColor} />
-          <Button.Label>Go to Voting</Button.Label>
-        </Button>
       </Animated.View>
     </Container>
   );

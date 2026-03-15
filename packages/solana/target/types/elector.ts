@@ -185,8 +185,8 @@ export type Elector = {
                 "path": "election"
               },
               {
-                "kind": "arg",
-                "path": "voterHash"
+                "kind": "account",
+                "path": "voter"
               }
             ]
           }
