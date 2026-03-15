@@ -12,6 +12,7 @@ export const env = createEnv({
     ELECTION_ENCRYPTION_KEY: z.string().optional(), // for encrypting votes
     DIGILOCKER_CLIENT_ID: z.string().optional(),
     DIGILOCKER_CLIENT_SECRET: z.string().optional(),
+    ADMIN_SECRET: z.string().optional(), // bearer token for admin endpoints
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

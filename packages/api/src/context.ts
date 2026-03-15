@@ -16,14 +16,15 @@ export type CreateContextOptions = {
   context: HonoContext;
 };
 
-export async function createContext({ }: CreateContextOptions): Promise<{
+export async function createContext({ context }: CreateContextOptions): Promise<{
   session: null;
   db: PrismaClient;
+  headers: Headers;
 }> {
-  // No auth configured
   return {
     session: null,
     db,
+    headers: context.req.raw.headers,
   };
 }
 

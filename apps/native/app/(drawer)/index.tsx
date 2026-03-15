@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
 import {
   Button,
   Card,
@@ -159,7 +160,7 @@ export default function Home() {
 
       {/* CTA */}
       <Animated.View entering={FadeInDown.delay(200).springify()} className="mb-8">
-        <Button variant="primary" className="w-full" onPress={() => {}}>
+        <Button variant="primary" className="w-full" onPress={() => router.push("/(drawer)/(tabs)/(tab-nav)")}>
           <Ionicons name="checkmark-done-outline" size={18} color={accentForegroundColor} />
           <Button.Label>Go to Voting</Button.Label>
         </Button>

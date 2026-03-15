@@ -8,15 +8,24 @@ async function main() {
   console.log("Seeding database...");
 
   // Create a sample election
+  // startTime: 1 hour ago so the election is already open
+  // endTime: 1 year from now so getCurrent() returns it
+  const startTime = new Date(Date.now() - 60 * 60 * 1000);
+  const endTime = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
   const election = await prisma.election.upsert({
     where: { id: "sample-election-1" },
-    update: {},
+    update: {
+      startTime,
+      endTime,
+      isActive: true,
+    },
     create: {
       id: "sample-election-1",
       title: "Sample Election 2024",
       description: "A demonstration election for the blockchain voting system",
-      startTime: new Date("2024-01-01T00:00:00Z"),
-      endTime: new Date("2025-12-31T23:59:59Z"),
+      startTime,
+      endTime,
       isActive: true,
     },
   });

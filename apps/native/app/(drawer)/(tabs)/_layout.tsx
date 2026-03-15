@@ -1,55 +1,57 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Stack, useNavigation } from "expo-router";
 import { useThemeColor } from "heroui-native";
+import { useCallback } from "react";
+import { Pressable } from "react-native";
 
-export default function TabLayout() {
-  const themeColorForeground = useThemeColor("foreground");
-  const themeColorBackground = useThemeColor("background");
-  const accentColor = useThemeColor("accent");
+import { ThemeToggle } from "@/components/theme-toggle";
+
+export default function TabsStackLayout() {
+  const foregroundColor = useThemeColor("foreground");
+  const backgroundColor = useThemeColor("background");
+  const navigation = useNavigation("/(drawer)");
+
+  const openDrawer = useCallback(() => {
+    (navigation as any).openDrawer?.();
+  }, [navigation]);
+
+  const renderDrawerToggle = useCallback(
+    () => (
+      <Pressable onPress={openDrawer} style={{ marginLeft: 4, padding: 8 }}>
+        <Ionicons name="menu-outline" size={24} color={foregroundColor} />
+      </Pressable>
+    ),
+    [openDrawer, foregroundColor]
+  );
+
+  const renderThemeToggle = useCallback(() => <ThemeToggle />, []);
 
   return (
-    <Tabs
+    <Stack
       screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: themeColorBackground,
-          borderTopWidth: 0,
-          elevation: 0,
-        },
-        tabBarActiveTintColor: accentColor,
-        tabBarInactiveTintColor: themeColorForeground,
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "500",
-        },
+        headerTintColor: foregroundColor,
+        headerStyle: { backgroundColor },
+        headerTitleStyle: { fontWeight: "700", color: foregroundColor },
+        headerBackButtonDisplayMode: "minimal",
       }}
     >
-      <Tabs.Screen
-        name="index"
+      <Stack.Screen
+        name="(tab-nav)"
         options={{
-          title: "Vote",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "checkmark-circle" : "checkmark-circle-outline"}
-              size={size}
-              color={color}
-            />
-          ),
+          headerShown: true,
+          headerTitle: "Vote",
+          headerLeft: renderDrawerToggle,
+          headerRight: renderThemeToggle,
         }}
       />
-      <Tabs.Screen
-        name="two"
+      <Stack.Screen
+        name="election/[id]"
         options={{
-          title: "Results",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "bar-chart" : "bar-chart-outline"}
-              size={size}
-              color={color}
-            />
-          ),
+          headerShown: true,
+          headerTitle: "Election",
+          headerLargeTitle: false,
         }}
       />
-    </Tabs>
+    </Stack>
   );
 }

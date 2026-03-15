@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import { useThemeColor } from "heroui-native";
 import React, { useCallback } from "react";
-import { Pressable, Text } from "react-native";
+import { Text } from "react-native";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -48,7 +47,7 @@ function DrawerLayout() {
       <Drawer.Screen
         name="(tabs)"
         options={{
-          headerTitle: "Vote",
+          headerShown: false,
           drawerLabel: ({ color, focused }) => (
             <Text style={{ color: focused ? color : themeColorForeground, fontWeight: focused ? "600" : "400" }}>
               Vote
@@ -60,13 +59,6 @@ function DrawerLayout() {
               size={size}
               color={focused ? color : themeColorForeground}
             />
-          ),
-          headerRight: () => (
-            <Link href={"./modal" as any} asChild>
-              <Pressable className="mr-4">
-                <Ionicons name="information-circle-outline" size={24} color={themeColorForeground} />
-              </Pressable>
-            </Link>
           ),
         }}
       />

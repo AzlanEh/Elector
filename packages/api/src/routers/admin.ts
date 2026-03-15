@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure } from "../index";
+import { adminProcedure } from "../index";
 import {
   initializeElection as solanaInitElection,
   startElection as solanaStartElection,
@@ -7,15 +7,14 @@ import {
 } from "@elector/blockchain/solana";
 
 /**
- * Admin router — protected operations for the election authority.
- *
- * NOTE: In production these endpoints must be protected by an authority
- * signature check (e.g. verify ELECTION_PRIVATE_KEY bearer token).  For now,
- * the procedures are public so the backend can be exercised during development.
+ * Admin router — protected by the ADMIN_SECRET env var.
+ * Callers must include the header: `x-admin-secret: <ADMIN_SECRET>`.
+ * When ADMIN_SECRET is not set the server is in development mode and
+ * requests are allowed through without a secret.
  */
 export const adminRouter = {
   // Create a new election in the DB and on-chain
-  createElection: publicProcedure
+  createElection: adminProcedure
     .input(
       z.object({
         title: z.string().min(1),
@@ -86,7 +85,7 @@ export const adminRouter = {
     }),
 
   // Activate an election (sets isActive = true in DB + calls start_election on Solana)
-  startElection: publicProcedure
+  startElection: adminProcedure
     .input(z.object({ electionId: z.string() }))
     .handler(async ({ input, context }) => {
       const election = await context.db.election.findUnique({
@@ -119,7 +118,7 @@ export const adminRouter = {
     }),
 
   // Close an election (sets isActive = false in DB + calls end_election on Solana)
-  endElection: publicProcedure
+  endElection: adminProcedure
     .input(z.object({ electionId: z.string() }))
     .handler(async ({ input, context }) => {
       const election = await context.db.election.findUnique({

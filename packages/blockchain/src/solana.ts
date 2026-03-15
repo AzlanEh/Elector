@@ -1,6 +1,10 @@
 import { Connection, Keypair, PublicKey, SystemProgram } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import type { Idl } from '@coral-xyz/anchor';
+
+// @coral-xyz/anchor is a CJS package — BN lives on the default export when
+// imported as a namespace in ESM.
+const BN = (anchor as any).default?.BN ?? (anchor as any).BN;
 import { readFileSync } from 'fs';
 import { homedir } from 'os';
 import path from 'path';
@@ -50,6 +54,35 @@ export function generateVoterWallet(): { publicKey: string; secretKey: Uint8Arra
   };
 }
 
+/**
+ * Fund a voter keypair with enough SOL to cover rent for one VoteCommitment PDA.
+ * Uses a SOL transfer from the authority wallet — works on localnet, devnet, and
+ * mainnet without hitting the airdrop faucet rate limit.
+ */
+async function fundVoterWallet(pubkey: PublicKey): Promise<void> {
+  // VoteCommitment account size: 8 (discriminator) + 4+64 (voter_hash) + 32 + 8 = 116 bytes
+  // Minimum rent-exempt balance for 116 bytes is ~0.0016 SOL; send 0.01 for headroom.
+  const lamports = 10_000_000; // 0.01 SOL
+
+  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+  const tx = new anchor.web3.Transaction({
+    recentBlockhash: blockhash,
+    feePayer: walletKeypair.publicKey,
+  }).add(
+    SystemProgram.transfer({
+      fromPubkey: walletKeypair.publicKey,
+      toPubkey: pubkey,
+      lamports,
+    })
+  );
+
+  const sig = await provider.sendAndConfirm(tx, [], { commitment: 'confirmed' });
+  await connection.confirmTransaction(
+    { signature: sig, blockhash, lastValidBlockHeight },
+    'confirmed'
+  );
+}
+
 // Submit vote commitment to Solana blockchain
 export async function submitVoteCommitment(
   voterWallet: { publicKey: string; secretKey: Uint8Array },
@@ -59,14 +92,14 @@ export async function submitVoteCommitment(
   const prog = getProgram();
   const voterKeypair = Keypair.fromSecretKey(voterWallet.secretKey);
 
+  // Fund the disposable voter keypair so it can pay for PDA rent
+  await fundVoterWallet(voterKeypair.publicKey);
+
   // commitment must be exactly 32 bytes (hex string → 64 chars)
   const commitmentBytes = Buffer.from(commitment, 'hex');
   if (commitmentBytes.length !== 32) {
     throw new Error('Commitment must be a 64-char hex string (32 bytes)');
   }
-
-  // Use first 64 chars of voter public key as on-chain voter_hash seed
-  const voterHashSeed = voterWallet.publicKey.slice(0, 64);
 
   // Derive election PDA
   const [electionAccount] = PublicKey.findProgramAddressSync(
@@ -74,14 +107,17 @@ export async function submitVoteCommitment(
     ELECTION_PROGRAM_ID
   );
 
-  // Derive vote commitment PDA — seeded by election pubkey + voter_hash arg
+  // Derive vote commitment PDA — seeded by election pubkey + voter pubkey (32 bytes each)
   const [voteCommitmentAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from('vote_commitment'), electionAccount.toBuffer(), Buffer.from(voterHashSeed)],
+    [Buffer.from('vote_commitment'), electionAccount.toBuffer(), voterKeypair.publicKey.toBuffer()],
     ELECTION_PROGRAM_ID
   );
 
+  // Pass the voter pubkey as the voter_hash string arg (human-readable id on-chain)
+  const voterHashArg = voterKeypair.publicKey.toBase58();
+
   const tx = await (prog as any).methods
-    .submitVoteCommitment(voterHashSeed, Array.from(commitmentBytes))
+    .submitVoteCommitment(voterHashArg, Array.from(commitmentBytes))
     .accounts({
       election: electionAccount,
       voteCommitment: voteCommitmentAccount,
@@ -98,7 +134,7 @@ export async function submitVoteCommitment(
 export async function verifyVoteCommitment(
   commitment: string,
   electionId: string,
-  voterHash: string
+  _voterHash: string
 ): Promise<boolean> {
   try {
     const prog = getProgram();
@@ -108,18 +144,30 @@ export async function verifyVoteCommitment(
       ELECTION_PROGRAM_ID
     );
 
-    const [voteCommitmentAccount] = PublicKey.findProgramAddressSync(
-      [Buffer.from('vote_commitment'), electionAccount.toBuffer(), Buffer.from(voterHash)],
-      ELECTION_PROGRAM_ID
-    );
+    // voterHash is a 64-char hex string (32 bytes raw). The vote_commitment PDA is
+    // seeded by the voter keypair pubkey (not the hash string), so we can't reverse-
+    // lookup the PDA from the hash alone without storing the voter pubkey. For now,
+    // enumerate all VoteCommitment accounts for the election using getProgramAccounts.
+    // This is a read-only best-effort check — failures return false gracefully.
+    const accounts = await connection.getProgramAccounts(ELECTION_PROGRAM_ID, {
+      filters: [
+        { memcmp: { offset: 0, bytes: electionAccount.toBase58() } },
+      ],
+    });
 
-    const accountInfo = await connection.getAccountInfo(voteCommitmentAccount);
-    if (!accountInfo) return false;
+    for (const { account } of accounts) {
+      try {
+        const voteData = await (prog.account as any)['voteCommitment'].coder.accounts.decode(
+          'voteCommitment', account.data
+        );
+        const storedCommitment = Buffer.from(voteData.commitment as number[]).toString('hex');
+        if (storedCommitment === commitment) return true;
+      } catch {
+        // not a voteCommitment account, skip
+      }
+    }
 
-    const voteData = await (prog.account as any)['voteCommitment'].fetch(voteCommitmentAccount);
-    const storedCommitment = Buffer.from(voteData.commitment as number[]).toString('hex');
-
-    return storedCommitment === commitment;
+    return false;
   } catch {
     return false;
   }
@@ -167,8 +215,8 @@ export async function initializeElection(
     .initializeElection(
       electionId,
       title,
-      new anchor.BN(startTime),
-      new anchor.BN(endTime),
+      new BN(startTime),
+      new BN(endTime),
       candidateCount
     )
     .accounts({

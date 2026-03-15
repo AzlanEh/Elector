@@ -69,13 +69,10 @@ export const resultsRouter = {
       };
     }),
 
-  // Get all completed elections with results
+  // Get all elections (active and completed) with results
   getAllResults: publicProcedure
     .handler(async ({ context }) => {
-      const now = new Date();
-
       const elections = await context.db.election.findMany({
-        where: { endTime: { lt: now } },
         include: {
           candidates: true,
           voteCommitments: true,
