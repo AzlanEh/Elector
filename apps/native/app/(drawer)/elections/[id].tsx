@@ -188,8 +188,8 @@ export default function ElectionDetailScreen() {
 
   const hasVotedQuery = useQuery(
     orpc.vote.hasVoted.queryOptions({
-      input: { userId: identity?.userId ?? "", electionId: id },
-      enabled: !!identity?.userId,
+      input: { electionId: id },
+      enabled: !!identity?.voterToken,
     })
   );
 
@@ -232,11 +232,10 @@ export default function ElectionDetailScreen() {
   const handleVote = () => {
     if (!identity || !selectedCandidate) return;
     submitVote.mutate(
-      {
-        userId: identity.userId,
-        electionId: id,
-        candidateId: selectedCandidate,
-      },
+        {
+          electionId: id,
+          candidateId: selectedCandidate,
+        },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({
@@ -246,7 +245,7 @@ export default function ElectionDetailScreen() {
           });
           queryClient.invalidateQueries({
             queryKey: orpc.vote.hasVoted.queryOptions({
-              input: { userId: identity.userId, electionId: id },
+              input: { electionId: id },
             }).queryKey,
           });
           queryClient.invalidateQueries({

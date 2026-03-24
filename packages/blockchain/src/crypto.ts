@@ -70,7 +70,9 @@ export function decryptVote(encryptedData: string): string {
  * Returns a hex digest.
  */
 export function signVoterToken(tokenData: string): string {
-  const secret = env.ELECTION_PRIVATE_KEY;
+  const secret =
+    env.ELECTION_PRIVATE_KEY ??
+    (env.NODE_ENV !== 'production' ? 'dev-voter-token-secret-change-in-prod' : undefined);
   if (!secret) throw new Error('ELECTION_PRIVATE_KEY is not configured');
   return createHmac('sha256', secret).update(tokenData).digest('hex');
 }

@@ -13,6 +13,7 @@ const IDENTITY_KEY = "elector.verified-identity";
 
 export type VerifiedIdentity = {
   userId: string;
+  voterToken: string;
   displayName: string;
   dob: string;
   age: number;

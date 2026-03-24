@@ -260,3 +260,9 @@ For production issues:
 - Data retention policies
 - Audit logging for sensitive operations
 - Regular security assessments
+
+## Vercel Monorepo Notes
+
+For this repository's concrete Vercel setup, see:
+
+- `docs/deployment-vercel.md`

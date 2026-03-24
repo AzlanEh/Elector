@@ -15,11 +15,15 @@ export const publicProcedure = o;
 export const adminProcedure = o.use(({ context, next }) => {
   const configuredSecret = env.ADMIN_SECRET;
 
+  if (env.NODE_ENV === "production" && !configuredSecret) {
+    throw new Error("Unauthorized");
+  }
+
   // If no secret is configured, allow through (dev mode)
   if (configuredSecret) {
     const provided = context.headers.get("x-admin-secret");
     if (provided !== configuredSecret) {
-      throw new Error("Unauthorized: invalid or missing admin secret");
+      throw new Error("Unauthorized");
     }
   }
 

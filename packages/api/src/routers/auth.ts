@@ -1,9 +1,53 @@
 import { z } from "zod";
+import { createHash, createHmac } from "node:crypto";
+import { env } from "@elector/env/server";
+import { signVoterToken } from "@elector/blockchain";
 import { publicProcedure } from "../index";
 import { parseAadhaarQr, devAadhaarData } from "../lib/aadhaar-qr-parser";
+import { unauthorized } from "../lib/errors";
 
 // Dev mode sentinel: when qrData is this string, return synthetic test data
 const DEV_QR_SENTINEL = "dev";
+
+const TOKEN_TTL_SECONDS = 60 * 60 * 12; // 12 hours
+
+function deriveIdentityKey(input: {
+  uid: string;
+  name: string;
+  dob: string;
+  gender: string;
+  address: string;
+  pincode?: string;
+}): string {
+  const canonical = [
+    input.uid,
+    input.name,
+    input.dob,
+    input.gender,
+    input.address,
+    input.pincode ?? "",
+  ]
+    .map((value) => value.trim().toLowerCase().replace(/\s+/g, " "))
+    .join("|");
+
+  if (env.ELECTION_PRIVATE_KEY) {
+    return createHmac("sha256", env.ELECTION_PRIVATE_KEY).update(canonical).digest("hex");
+  }
+
+  if (env.NODE_ENV === "production") {
+    throw new Error("Server misconfigured: ELECTION_PRIVATE_KEY is required in production");
+  }
+
+  return createHash("sha256").update(canonical).digest("hex");
+}
+
+function issueVoterToken(userId: string): string {
+  const iat = Math.floor(Date.now() / 1000);
+  const exp = iat + TOKEN_TTL_SECONDS;
+  const payload = Buffer.from(JSON.stringify({ userId, iat, exp })).toString("base64url");
+  const signature = signVoterToken(payload);
+  return `${payload}.${signature}`;
+}
 
 export const authRouter = {
   /**
@@ -21,12 +65,17 @@ export const authRouter = {
   verifyQR: publicProcedure
     .input(
       z.object({
-        /** Raw QR bytes encoded as Base64, or "dev" for development bypass */
+        /** Raw QR bytes encoded as Base64, or "dev" in non-production */
         qrData: z.string().min(1),
       })
     )
     .handler(async ({ input, context }) => {
-      const isDev = input.qrData === DEV_QR_SENTINEL;
+      const isDevSentinel = input.qrData === DEV_QR_SENTINEL;
+      const isDev = env.NODE_ENV !== "production" && isDevSentinel;
+
+      if (env.NODE_ENV === "production" && isDevSentinel) {
+        unauthorized();
+      }
 
       // ── Step 1: Parse QR ──────────────────────────────────────────────────
       const aadhaarData = isDev
@@ -34,10 +83,8 @@ export const authRouter = {
         : await parseAadhaarQr(input.qrData);
 
       // ── Step 2: Signature check ───────────────────────────────────────────
-      // Physical card V5 pipe-delimited QRs do not verify against the published
-      // UIDAI offline cert (different key). We log but do not block for this format.
-      if (!isDev && !aadhaarData.signatureValid) {
-        // Soft fail — proceed with unverified identity data
+      if (!isDev && !aadhaarData.signatureValid && env.NODE_ENV === "production") {
+        unauthorized();
       }
 
       // ── Step 3: Age eligibility ───────────────────────────────────────────
@@ -49,11 +96,22 @@ export const authRouter = {
       }
 
       // ── Step 4: Upsert User ───────────────────────────────────────────────
-      const user = await context.db.user.upsert({
-        where: { aadhaarHash: aadhaarData.uid },
-        update: {},
-        create: { aadhaarHash: aadhaarData.uid },
+      const identityKey = deriveIdentityKey({
+        uid: aadhaarData.uid,
+        name: aadhaarData.name,
+        dob: aadhaarData.dob,
+        gender: aadhaarData.gender,
+        address: aadhaarData.address,
+        pincode: aadhaarData.pincode,
       });
+
+      const user = await context.db.user.upsert({
+        where: { aadhaarHash: identityKey },
+        update: {},
+        create: { aadhaarHash: identityKey },
+      });
+
+      const voterToken = issueVoterToken(user.id);
 
       // ── Step 5: Return — UID never leaves this function ───────────────────
       return {
@@ -67,6 +125,7 @@ export const authRouter = {
         photo: aadhaarData.photo ?? null,
         signatureValid: aadhaarData.signatureValid,
         qrFormat: aadhaarData.format,
+        voterToken,
       };
     }),
 };

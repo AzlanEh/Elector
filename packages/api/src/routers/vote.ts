@@ -1,16 +1,19 @@
 import { z } from "zod";
 import { publicProcedure } from "../index";
+import { getAuthenticatedUserId } from "../lib/voter-token";
 
 export const voteRouter = {
   submit: publicProcedure
     .input(
       z.object({
-        userId: z.string(),
+        voterToken: z.string().min(1).optional(),
         electionId: z.string(),
         candidateId: z.string(),
       })
     )
     .handler(async ({ input, context }) => {
+      const userId = getAuthenticatedUserId(input.voterToken, context.voterToken);
+
       // Verify election is currently active
       const election = await context.db.election.findUnique({
         where: { id: input.electionId },
@@ -31,7 +34,7 @@ export const voteRouter = {
       const existing = await context.db.vote.findUnique({
         where: {
           userId_electionId: {
-            userId: input.userId,
+            userId,
             electionId: input.electionId,
           },
         },
@@ -40,7 +43,7 @@ export const voteRouter = {
 
       const vote = await context.db.vote.create({
         data: {
-          userId: input.userId,
+          userId,
           electionId: input.electionId,
           candidateId: input.candidateId,
         },
@@ -50,12 +53,13 @@ export const voteRouter = {
     }),
 
   hasVoted: publicProcedure
-    .input(z.object({ userId: z.string(), electionId: z.string() }))
+    .input(z.object({ voterToken: z.string().min(1).optional(), electionId: z.string() }))
     .handler(async ({ input, context }) => {
+      const userId = getAuthenticatedUserId(input.voterToken, context.voterToken);
       const vote = await context.db.vote.findUnique({
         where: {
           userId_electionId: {
-            userId: input.userId,
+            userId,
             electionId: input.electionId,
           },
         },

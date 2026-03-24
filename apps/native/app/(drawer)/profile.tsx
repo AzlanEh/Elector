@@ -195,6 +195,7 @@ export default function ProfileScreen() {
         onSuccess: async (data) => {
           await saveIdentity({
             userId: data.userId,
+            voterToken: data.voterToken,
             displayName: data.displayName,
             dob: data.dob,
             age: data.age,

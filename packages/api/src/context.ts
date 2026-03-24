@@ -20,11 +20,18 @@ export async function createContext({ context }: CreateContextOptions): Promise<
   session: null;
   db: PrismaClient;
   headers: Headers;
+  voterToken: string | null;
 }> {
+  const authHeader = context.req.raw.headers.get("authorization");
+  const voterToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length).trim() || null
+    : null;
+
   return {
     session: null,
     db,
     headers: context.req.raw.headers,
+    voterToken,
   };
 }
 
