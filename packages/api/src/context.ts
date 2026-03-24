@@ -19,10 +19,10 @@ export type CreateContextOptions = {
 export async function createContext({ context }: CreateContextOptions): Promise<{
   session: null;
   db: PrismaClient;
-  headers: Headers;
+  getHeader: (name: string) => string | undefined;
   voterToken: string | null;
 }> {
-  const authHeader = context.req.raw.headers.get("authorization");
+  const authHeader = context.req.header("authorization");
   const voterToken = authHeader?.startsWith("Bearer ")
     ? authHeader.slice("Bearer ".length).trim() || null
     : null;
@@ -30,7 +30,7 @@ export async function createContext({ context }: CreateContextOptions): Promise<
   return {
     session: null,
     db,
-    headers: context.req.raw.headers,
+    getHeader: (name) => context.req.header(name),
     voterToken,
   };
 }

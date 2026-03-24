@@ -21,7 +21,7 @@ export const adminProcedure = o.use(({ context, next }) => {
 
   // If no secret is configured, allow through (dev mode)
   if (configuredSecret) {
-    const provided = context.headers.get("x-admin-secret");
+    const provided = context.getHeader("x-admin-secret");
     if (provided !== configuredSecret) {
       throw new Error("Unauthorized");
     }
