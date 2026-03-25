@@ -16,7 +16,7 @@ app.use(logger());
 app.use(
   "/*",
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: env.CORS_ORIGIN || (env.NODE_ENV === "production" ? "https://elector-server.vercel.app" : "*"),
     allowMethods: ["GET", "POST", "OPTIONS"],
   }),
 );

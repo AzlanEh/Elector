@@ -7,7 +7,7 @@ export const env = createEnv({
   client: {},
   server: {
     DATABASE_URL: z.string().min(1),
-    CORS_ORIGIN: z.url(),
+    CORS_ORIGIN: z.string().url().optional(),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     SOLANA_RPC_URL: z.string().url().default("https://api.devnet.solana.com"),
     ELECTION_PRIVATE_KEY: z.string().optional(), // for signing voter tokens
