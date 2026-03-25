@@ -205,9 +205,6 @@ importers:
       '@elector/env':
         specifier: workspace:*
         version: link:../../packages/env
-      '@hono/node-server':
-        specifier: ^1.14.4
-        version: 1.19.11(hono@4.12.7)
       '@orpc/openapi':
         specifier: 'catalog:'
         version: 1.13.7(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))
@@ -1475,12 +1472,6 @@ packages:
     peerDependencies:
       react: '*'
       react-native: '*'
-
-  '@hono/node-server@1.19.11':
-    resolution: {integrity: sha512-dr8/3zEaB+p0D2n/IUrlPF1HZm586qgJNXK1a9fhg/PzdtkK7Ksd5l312tJX2yBuALqDYBlG20QEbayqPyxn+g==}
-    engines: {node: '>=18.14.1'}
-    peerDependencies:
-      hono: ^4
 
   '@hono/node-server@1.19.9':
     resolution: {integrity: sha512-vHL6w3ecZsky+8P5MD+eFfaGTyCeOHUIFYMGpQGbrBTSmNNoxv0if69rEZ5giu36weC5saFuznL411gRX7bJDw==}
@@ -7081,10 +7072,6 @@ snapshots:
       nanoid: 3.3.11
       react: 19.2.0
       react-native: 0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)
-
-  '@hono/node-server@1.19.11(hono@4.12.7)':
-    dependencies:
-      hono: 4.12.7
 
   '@hono/node-server@1.19.9(hono@4.11.4)':
     dependencies:

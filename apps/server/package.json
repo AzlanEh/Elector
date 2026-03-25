@@ -13,7 +13,6 @@
     "@elector/api": "workspace:*",
     "@elector/db": "workspace:*",
     "@elector/env": "workspace:*",
-    "@hono/vercel": "^1.0.0",
     "@orpc/openapi": "catalog:",
     "@orpc/server": "catalog:",
     "@orpc/zod": "catalog:",
