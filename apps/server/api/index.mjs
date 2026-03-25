@@ -1,4 +1,3 @@
-import { handle } from "@hono/vercel";
 import { createContext } from "@elector/api/context";
 import { appRouter } from "@elector/api/routers/index";
 import { env } from "@elector/env/server";
@@ -15,7 +14,7 @@ import { logger } from "hono/logger";
 const app = new Hono();
 app.use(logger());
 app.use("/*", cors({
-	origin: env.CORS_ORIGIN,
+	origin: env.CORS_ORIGIN || (env.NODE_ENV === "production" ? "https://elector-server.vercel.app" : "*"),
 	allowMethods: [
 		"GET",
 		"POST",
@@ -51,7 +50,7 @@ app.get("/", (c) => {
 
 //#endregion
 //#region src/index.ts
-var src_default = handle(app);
+var src_default = app;
 
 //#endregion
 export { src_default as default };
